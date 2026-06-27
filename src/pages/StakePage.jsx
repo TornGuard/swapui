@@ -217,7 +217,7 @@ export default function StakePage() {
 
   return (
     <div className="wrap">
-      <div className="stat-strip" style={{ gridTemplateColumns: 'repeat(4,1fr)', maxWidth: '936px' }}>
+      <div className="stat-strip stake-strip">
         <div className="stat"><div className="stat-val">{ready ? fmtTok(s.totalStaked) : '—'}</div><div className="stat-lbl">TOTAL STAKED $GM</div></div>
         <div className="stat"><div className="stat-val eth">{ready ? fmtTok(s.myStake) : '—'}</div><div className="stat-lbl">YOUR STAKE</div></div>
         <div className="stat"><div className="stat-val eth">{ready ? <>{fmtEth(s.pendingEth, 4)}<span className="u">Ξ</span></> : '—'}</div><div className="stat-lbl">YOUR PENDING ETH</div></div>
@@ -326,7 +326,7 @@ export default function StakePage() {
         </div>
       </div>
 
-      <div className="disc">
+      <div className="disc" style={{ maxWidth: '936px' }}>
         <b>How it works.</b> Every swap on the $GM pool is taxed in ETH. 50% of that tax goes to the treasury (fuel for the gas-prediction app &amp; planned buybacks), 50% streams to stakers pro-rata in ETH over a 24h window. The tax starts at 20% while the cap is small to bootstrap the protocol and auto-tapers to 5% as marketcap grows. &nbsp;
         <b>Penalty.</b> Unstaking re-arms a 100% early-exit penalty that decays linearly to 0 over 7 days; whatever you forfeit is redistributed to the stakers who stay. &nbsp;
         <b>Non-custodial.</b> stake / unstake / claim are direct on-chain calls to the hook contract — no intermediary holds your funds.

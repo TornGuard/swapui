@@ -21,6 +21,15 @@ createAppKit({
   networks: [mainnet],
   metadata,
   projectId,
+  themeMode: 'dark',
+  themeVariables: {
+    '--apkt-color-mix': '#08080a',
+    '--apkt-color-mix-strength': 100,
+    '--apkt-accent': '#a0a0c0',
+    '--apkt-font-family': "'JetBrains Mono', monospace",
+    '--apkt-border-radius-master': '0',
+    '--apkt-font-size-master': '10'
+  },
   features: {
     analytics: false,
     socials: false,

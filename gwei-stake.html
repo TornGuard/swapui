@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$GM — Stake & Earn ETH</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080a;
+  --panel:#111113;
+  --surf:#17171b;
+  --surf2:#1e1e23;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.13);
+  --border3:rgba(255,255,255,0.22);
+  --text:#e8e8ee;
+  --muted:#444;
+  --muted2:#777;
+  --muted3:#999;
+  --up:#4ade80;
+  --up-dim:rgba(74,222,128,0.08);
+  --up-border:rgba(74,222,128,0.35);
+  --down:#f87171;
+  --down-dim:rgba(248,113,113,0.08);
+  --down-border:rgba(248,113,113,0.35);
+  --acc:#a0a0c0;
+  --acc2:#6b6b8a;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;display:flex;flex-direction:column}
+
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;height:52px;
+  background:rgba(8,8,10,0.95);
+  border-bottom:0.5px solid var(--border2);
+  flex-shrink:0;position:sticky;top:0;z-index:100;
+}
+.logo{flex:1;font-family:var(--display);font-size:20px;letter-spacing:3px;color:var(--text)}
+.logo span{color:var(--acc)}
+.nav-mid{display:flex;gap:0}
+.nav-tab{font-size:10px;letter-spacing:0.12em;color:var(--muted2);padding:0 16px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;text-decoration:none}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--acc)}
+.nav-tab:hover:not(.active){color:var(--muted3)}
+.nav-right{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.wallet-btn{font-size:10px;letter-spacing:0.1em;color:var(--text);border:0.5px solid var(--border2);background:none;padding:7px 16px;cursor:pointer;font-family:var(--mono);transition:border-color 0.15s}
+.wallet-btn:hover{border-color:var(--border3)}
+.bal{font-size:10px;color:var(--muted2);letter-spacing:0.06em}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--up);animation:blink 1.8s ease-in-out infinite;display:inline-block}
+.dot.off{background:var(--muted2);animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+.wrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:1.5rem;gap:1rem;width:100%}
+.grid{width:100%;max-width:1040px;display:grid;grid-template-columns:1fr 360px;gap:1rem;align-items:start}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+
+/* ── hero stat strip ── */
+.stat-strip{width:100%;max-width:1040px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:0.5px solid var(--border)}
+.stat{background:var(--panel);padding:14px 16px}
+.stat-val{font-family:var(--display);font-size:30px;letter-spacing:1px;color:var(--text);line-height:1}
+.stat-val .u{font-family:var(--mono);font-size:11px;color:var(--muted2);font-weight:400;letter-spacing:0;margin-left:4px}
+.stat-lbl{font-size:8px;color:var(--muted);letter-spacing:0.14em;margin-top:5px}
+.stat-val.eth{color:var(--up)}
+
+.card{background:var(--panel);border:0.5px solid var(--border2);padding:1.25rem}
+.card-label{font-size:9px;color:var(--muted);letter-spacing:0.18em;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.card-label-right{color:var(--acc2)}
+
+/* ── tax taper banner ── */
+.taper{background:var(--panel);border:0.5px solid var(--border);padding:1.25rem;width:100%;max-width:1040px}
+.taper-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.taper-rate{font-family:var(--display);font-size:54px;letter-spacing:2px;line-height:1;color:var(--text)}
+.taper-rate .u{font-family:var(--mono);font-size:13px;color:var(--muted2);font-weight:400;letter-spacing:0;margin-left:4px}
+.taper-sub{text-align:right;font-size:9px;color:var(--muted2);letter-spacing:0.1em;line-height:1.7}
+.taper-sub b{color:var(--text)}
+.taper-track{height:6px;background:var(--surf);position:relative;overflow:hidden;margin-bottom:6px}
+.taper-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--down),var(--acc),var(--up))}
+.taper-marker{position:absolute;top:-3px;width:2px;height:12px;background:var(--text)}
+.taper-ends{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);letter-spacing:0.12em}
+
+/* ── tabs (stake / unstake) ── */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:16px;border:0.5px solid var(--border2)}
+.seg-btn{padding:11px 0;text-align:center;font-size:10px;letter-spacing:0.14em;color:var(--muted2);background:var(--surf);cursor:pointer;transition:all 0.15s;font-family:var(--mono)}
+.seg-btn.active{background:var(--surf2);color:var(--text)}
+.seg-btn:not(.active):hover{color:var(--muted3)}
+
+.field-lbl{font-size:9px;color:var(--muted);letter-spacing:0.14em;margin-bottom:8px;display:flex;justify-content:space-between}
+.field-lbl .bal-link{color:var(--acc2);cursor:pointer}
+.field-lbl .bal-link:hover{color:var(--acc)}
+.amount-row{display:flex;align-items:center;border:0.5px solid var(--border2);background:var(--surf);margin-bottom:12px}
+.amount-prefix{font-size:13px;color:var(--muted2);padding:0 12px;border-right:0.5px solid var(--border);white-space:nowrap}
+.amount-input{flex:1;background:none;border:none;outline:none;font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text);padding:12px;width:100%;min-width:0}
+.amount-input::placeholder{color:var(--muted)}
+.quick-amts{display:flex;gap:6px;margin-bottom:16px}
+.qa{flex:1;font-size:10px;letter-spacing:0.06em;padding:7px 0;text-align:center;border:0.5px solid var(--border2);background:none;color:var(--muted2);cursor:pointer;font-family:var(--mono);transition:all 0.12s}
+.qa:hover{border-color:var(--border3);color:var(--text)}
+
+.info-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:10px}
+.info-lbl{color:var(--muted)}
+.info-val{color:var(--text);font-weight:700}
+.info-val.warn{color:var(--down)}
+.info-val.good{color:var(--up)}
+
+.act-btn{width:100%;padding:14px;font-family:var(--display);font-size:22px;letter-spacing:3px;background:var(--text);color:#08080a;border:none;cursor:pointer;transition:opacity 0.15s;display:block}
+.act-btn:hover{opacity:0.85}
+.act-btn:disabled{opacity:0.3;cursor:not-allowed}
+.act-btn.up{background:var(--up)}
+.act-btn.down{background:var(--down)}
+.note{font-size:9px;color:var(--muted);text-align:center;margin-top:10px;letter-spacing:0.04em;line-height:1.6}
+
+/* ── rewards / position card ── */
+.pos-big{font-family:var(--display);font-size:44px;letter-spacing:2px;line-height:1;color:var(--up);margin-bottom:2px}
+.pos-big .u{font-family:var(--mono);font-size:12px;color:var(--muted2);font-weight:400;letter-spacing:0;margin-left:4px}
+.pos-sub{font-size:9px;color:var(--muted2);letter-spacing:0.1em;margin-bottom:16px}
+.claim-btn{width:100%;padding:13px;font-family:var(--display);font-size:20px;letter-spacing:3px;background:var(--up);color:#08080a;border:none;cursor:pointer;transition:opacity 0.15s}
+.claim-btn:hover{opacity:0.85}
+.claim-btn:disabled{opacity:0.3;cursor:not-allowed}
+
+.penalty-box{margin-top:16px;padding:12px;border:0.5px solid var(--border);background:var(--surf2)}
+.pen-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pen-lbl{font-size:9px;color:var(--muted);letter-spacing:0.12em}
+.pen-val{font-family:var(--display);font-size:20px;letter-spacing:1px}
+.pen-val.hot{color:var(--down)}
+.pen-val.cool{color:var(--up)}
+.pen-track{height:4px;background:var(--surf);overflow:hidden;margin-bottom:6px}
+.pen-fill{height:100%;background:var(--down);transition:width 0.5s}
+.pen-note{font-size:8px;color:var(--muted2);letter-spacing:0.06em;line-height:1.6}
+
+.disc{width:100%;max-width:1040px;font-size:9px;color:var(--muted);letter-spacing:0.05em;line-height:1.8;border-top:0.5px solid var(--border);padding-top:14px}
+.disc b{color:var(--muted3)}
+
+.empty{font-size:11px;color:var(--muted2);text-align:center;padding:30px 12px;letter-spacing:0.06em;line-height:1.8}
+.empty .big{font-family:var(--display);font-size:26px;letter-spacing:2px;color:var(--text);display:block;margin-bottom:8px}
+
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--surf);border:0.5px solid var(--border2);padding:10px 20px;font-size:11px;letter-spacing:0.06em;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1}
+.toast.err{border-color:var(--down-border);color:var(--down)}
+.toast.ok{border-color:var(--up-border)}
+.spin{display:inline-block;width:9px;height:9px;border:1.5px solid var(--acc2);border-top-color:transparent;border-radius:50%;animation:rot 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes rot{to{transform:rotate(360deg)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">$<span>GM</span></div>
+  <div class="nav-mid">
+    <a class="nav-tab" href="gwei-swap.html">SWAP</a>
+    <a class="nav-tab active">STAKE</a>
+  </div>
+  <div class="nav-right">
+    <div class="bal"><span class="dot off" id="netDot"></span> <span id="netLbl">not connected</span></div>
+    <div class="bal hidden" id="walBalWrap">Ξ <span id="walletBal">0.000</span></div>
+    <button class="wallet-btn" id="connectBtn" onclick="connect()">CONNECT WALLET</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ── protocol stats ── -->
+  <div class="stat-strip">
+    <div class="stat"><div class="stat-val" id="stTvl">—</div><div class="stat-lbl">TOTAL STAKED $GM</div></div>
+    <div class="stat"><div class="stat-val eth" id="stApr">—</div><div class="stat-lbl">YOUR STAKE</div></div>
+    <div class="stat"><div class="stat-val eth" id="stPaid">—</div><div class="stat-lbl">YOUR PENDING ETH</div></div>
+    <div class="stat"><div class="stat-val" id="stTax">—</div><div class="stat-lbl">LIVE SWAP TAX</div></div>
+  </div>
+
+  <!-- ── tax taper banner ── -->
+  <div class="taper">
+    <div class="card-label"><span>SWAP TAX — TAPERS AS WE GROW</span><span class="card-label-right">50% OF EVERY TAX → STAKERS, PAID IN ETH</span></div>
+    <div class="taper-top">
+      <div class="taper-rate" id="taperRate">—<span class="u">current</span></div>
+      <div class="taper-sub">
+        starts at <b>20%</b> to bootstrap<br>
+        tapers to <b>5%</b> as marketcap climbs<br>
+        <span id="taperCtx" style="color:var(--acc2)">connect to read live rate</span>
+      </div>
+    </div>
+    <div class="taper-track"><div class="taper-fill"></div><div class="taper-marker" id="taperMarker" style="left:0%"></div></div>
+    <div class="taper-ends"><span>20% · SMALL CAP</span><span>5% · MATURE</span></div>
+  </div>
+
+  <!-- ── main grid ── -->
+  <div class="grid">
+
+    <!-- left: stake / unstake -->
+    <div class="card">
+      <div class="seg">
+        <div class="seg-btn active" id="segStake" onclick="setMode('stake')">STAKE</div>
+        <div class="seg-btn" id="segUnstake" onclick="setMode('unstake')">UNSTAKE</div>
+      </div>
+
+      <div class="field-lbl">
+        <span id="fieldLbl">AMOUNT TO STAKE</span>
+        <span class="bal-link" id="balLink" onclick="setMax()">balance: — MAX</span>
+      </div>
+      <div class="amount-row">
+        <div class="amount-prefix">$GM</div>
+        <input class="amount-input" id="amtInput" type="number" min="0" step="any" placeholder="0.00" oninput="updatePreview()">
+      </div>
+      <div class="quick-amts">
+        <button class="qa" onclick="setPct(0.25)">25%</button>
+        <button class="qa" onclick="setPct(0.5)">50%</button>
+        <button class="qa" onclick="setPct(0.75)">75%</button>
+        <button class="qa" onclick="setPct(1)">MAX</button>
+      </div>
+
+      <div class="info-rows" id="infoStake">
+        <div class="info-row"><span class="info-lbl">YOU STAKE</span><span class="info-val" id="ivStakeAmt">— $GM</span></div>
+        <div class="info-row"><span class="info-lbl">NEW TOTAL POSITION</span><span class="info-val" id="ivNewPos">—</span></div>
+        <div class="info-row"><span class="info-lbl">PENALTY LOCK (re-arms to 100%)</span><span class="info-val warn">7 DAYS</span></div>
+      </div>
+      <div class="info-rows hidden" id="infoUnstake">
+        <div class="info-row"><span class="info-lbl">YOU UNSTAKE</span><span class="info-val" id="uvAmt">— $GM</span></div>
+        <div class="info-row"><span class="info-lbl">CURRENT PENALTY</span><span class="info-val warn" id="uvPenPct">—%</span></div>
+        <div class="info-row"><span class="info-lbl">PENALTY FORFEIT → other stakers</span><span class="info-val warn" id="uvPenAmt">— $GM</span></div>
+        <div class="info-row"><span class="info-lbl">YOU RECEIVE</span><span class="info-val good" id="uvOut">— $GM</span></div>
+      </div>
+
+      <button class="act-btn up" id="actBtn" disabled onclick="doAction()">CONNECT WALLET</button>
+      <div class="note" id="actNote">Stake $GM to earn a share of every swap tax — paid in real ETH.</div>
+    </div>
+
+    <!-- right: rewards + penalty -->
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="card">
+        <div class="card-label"><span>YOUR REWARDS</span><span class="card-label-right">PAID IN ETH</span></div>
+        <div id="rewardsBody">
+          <div class="empty" id="rewardsEmpty">
+            <span class="big">— Ξ</span>
+            connect your wallet to<br>view your staking position
+          </div>
+          <div class="hidden" id="rewardsLive">
+            <div class="pos-big"><span id="pendEth">0.000</span><span class="u">ETH</span></div>
+            <div class="pos-sub">claimable now · streams over 24h (anti-JIT)</div>
+            <button class="claim-btn" id="claimBtn" onclick="doClaim()">CLAIM ETH</button>
+            <div class="info-rows" style="margin-top:14px;margin-bottom:0">
+              <div class="info-row"><span class="info-lbl">YOUR STAKE</span><span class="info-val" id="rvStake">— $GM</span></div>
+              <div class="info-row"><span class="info-lbl">POOL SHARE</span><span class="info-val" id="rvShare">—%</span></div>
+              <div class="info-row"><span class="info-lbl">BONUS $GM (from penalties)</span><span class="info-val good" id="rvBonus">—</span></div>
+            </div>
+
+            <div class="penalty-box">
+              <div class="pen-top">
+                <div class="pen-lbl">EARLY-EXIT PENALTY</div>
+                <div class="pen-val hot" id="penVal">—%</div>
+              </div>
+              <div class="pen-track"><div class="pen-fill" id="penFill" style="width:0%"></div></div>
+              <div class="pen-note" id="penNote">Decays 100% → 0 over 7 days. Forfeited tokens are redistributed to loyal stakers. Claiming or staking re-arms it to 100%.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="disc">
+    <b>How it works.</b> Every swap on the $GM pool is taxed in ETH. 50% of that tax goes to the treasury (fuel for the gas-prediction app &amp; planned buybacks), 50% streams to stakers pro-rata in ETH over a 24h window. The tax starts at 20% while the cap is small to bootstrap the protocol and auto-tapers to 5% as marketcap grows. &nbsp;
+    <b>Penalty.</b> Unstaking re-arms a 100% early-exit penalty that decays linearly to 0 over 7 days; whatever you forfeit is redistributed to the stakers who stay. &nbsp;
+    <b>Non-custodial.</b> stake / unstake / claim are direct on-chain calls to the hook contract — no intermediary holds your funds.
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<!-- optional: generated by localui.sh for the anvil demo; harmless 404 if absent -->
+<script src="gwei-config.js" onerror="void 0"></script>
+<script>
+/* ════════════════════════════ CONFIG ════════════════════════════
+   Fill these in after deploy, OR let localui.sh generate gwei-stake.config.js
+   (which sets window.GWEI_CONFIG and overrides the defaults below).
+   HOOK = TaxHook address, TOKEN auto-read from hook.token(), CHAIN_ID = network. */
+const CONFIG = Object.assign({
+  HOOK:     "0x67Bd823d5435C1597f397151897D7Db3BF0940Cc", // TaxHook address
+  CHAIN_ID: 1,                                             // 1 = mainnet, 31337 = anvil
+  TOKEN_SYMBOL: "GM",
+}, (typeof window !== "undefined" && window.GWEI_CONFIG) ? window.GWEI_CONFIG : {});
+const HAS_CONTRACT = /^0x[0-9a-fA-F]{40}$/.test(CONFIG.HOOK) && CONFIG.HOOK !== ethersZero();
+function ethersZero(){return "0x0000000000000000000000000000000000000000"}
+
+/* minimal ABIs */
+const HOOK_ABI = [
+  "function stake(uint256 amount)",
+  "function unstake(uint256 amount)",
+  "function claim()",
+  "function token() view returns (address)",
+  "function totalStaked() view returns (uint256)",
+  "function currentTaxBps() view returns (uint256)",
+  "function pendingRewards(address) view returns (uint256)",
+  "function pendingTokens(address) view returns (uint256)",
+  "function penaltyBps(address) view returns (uint256)",
+  "function stakes(address) view returns (uint256 amount, uint256 rewardDebt, uint256 tokenDebt, uint64 unlockAt)",
+  "function PENALTY_WINDOW() view returns (uint256)"
+];
+const ERC20_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function allowance(address,address) view returns (uint256)",
+  "function approve(address,uint256) returns (bool)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
+];
+
+/* ════════════════════════════ STATE ════════════════════════════ */
+let provider, signer, account, hook, token, tokenDecimals = 18, tokenSym = CONFIG.TOKEN_SYMBOL;
+let mode = "stake";
+let st = {
+  walEth: 0, tokenBal: 0n, allowance: 0n,
+  totalStaked: 0n, taxBps: 0,
+  myStake: 0n, pendingEth: 0n, pendingTok: 0n, penBps: 0, unlockAt: 0
+};
+const MAXU = ethers.constants.MaxUint256;
+
+/* ════════════════════════════ HELPERS ════════════════════════════ */
+const $ = id => document.getElementById(id);
+function fmt(bn, dec = 18, p = 3){ try{ return Number(ethers.utils.formatUnits(bn, dec)).toLocaleString(undefined,{maximumFractionDigits:p}); }catch{ return "0"; } }
+function fmtEth(bn, p = 4){ return fmt(bn, 18, p); }
+function fmtTok(bn, p = 2){
+  const n = Number(ethers.utils.formatUnits(bn, tokenDecimals));
+  if(n >= 1e6) return (n/1e6).toFixed(2)+"M";
+  if(n >= 1e3) return (n/1e3).toFixed(1)+"K";
+  return n.toLocaleString(undefined,{maximumFractionDigits:p});
+}
+function toast(msg, kind=""){ const t=$("toast"); t.className="toast show "+kind; t.innerHTML=msg; clearTimeout(t._t); t._t=setTimeout(()=>t.className="toast",kind==="ok"?4000:3500); }
+function short(a){ return a.slice(0,6)+".."+a.slice(-4); }
+
+/* ════════════════════════════ CONNECT ════════════════════════════ */
+async function connect(){
+  if(!window.ethereum){ toast("No wallet found — install MetaMask or a Web3 wallet.","err"); return; }
+  if(!HAS_CONTRACT){ toast("Set CONFIG.HOOK to the deployed TaxHook address first.","err"); return; }
+  try{
+    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    account = await signer.getAddress();
+
+    const net = await provider.getNetwork();
+    if(CONFIG.CHAIN_ID && net.chainId !== CONFIG.CHAIN_ID){
+      try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x"+CONFIG.CHAIN_ID.toString(16)}]}); }
+      catch{ toast("Wrong network — switch to chain "+CONFIG.CHAIN_ID,"err"); }
+    }
+
+    hook = new ethers.Contract(CONFIG.HOOK, HOOK_ABI, signer);
+    const tokAddr = await hook.token();
+    token = new ethers.Contract(tokAddr, ERC20_ABI, signer);
+    try{ tokenDecimals = await token.decimals(); }catch{}
+    try{ tokenSym = await token.symbol(); }catch{}
+
+    $("connectBtn").textContent = short(account);
+    $("netDot").className = "dot";
+    $("netLbl").textContent = "connected";
+    $("walBalWrap").classList.remove("hidden");
+
+    window.ethereum.on?.("accountsChanged", ()=>location.reload());
+    window.ethereum.on?.("chainChanged", ()=>location.reload());
+
+    await refresh();
+    toast("Wallet connected","ok");
+  }catch(e){ toast(err(e),"err"); }
+}
+
+function err(e){
+  const m = e?.data?.message || e?.error?.message || e?.reason || e?.message || "transaction failed";
+  if(/user rejected|denied/i.test(m)) return "Rejected in wallet";
+  return m.length > 80 ? m.slice(0,80)+"…" : m;
+}
+
+/* ════════════════════════════ READ STATE ════════════════════════════ */
+async function refresh(){
+  if(!hook || !account) return;
+  try{
+    const [walEth, tokenBal, allowance, totalStaked, taxBps, pendingEth, pendingTok, penBps, sInfo] = await Promise.all([
+      provider.getBalance(account),
+      token.balanceOf(account),
+      token.allowance(account, CONFIG.HOOK),
+      hook.totalStaked(),
+      hook.currentTaxBps().catch(()=>ethers.BigNumber.from(2000)),
+      hook.pendingRewards(account),
+      hook.pendingTokens(account),
+      hook.penaltyBps(account),
+      hook.stakes(account)
+    ]);
+    st = {
+      walEth, tokenBal, allowance,
+      totalStaked, taxBps: taxBps.toNumber(),
+      myStake: sInfo.amount, pendingEth, pendingTok,
+      penBps: penBps.toNumber(), unlockAt: Number(sInfo.unlockAt)
+    };
+    render();
+  }catch(e){ console.error(e); toast(err(e),"err"); }
+}
+
+/* ════════════════════════════ RENDER ════════════════════════════ */
+function render(){
+  const connected = !!account;
+
+  // nav balance
+  $("walletBal").textContent = fmtEth(st.walEth, 3);
+
+  // stat strip
+  $("stTvl").innerHTML = connected ? fmtTok(st.totalStaked) : "—";
+  $("stApr").innerHTML = connected ? fmtTok(st.myStake) : "—";
+  $("stPaid").innerHTML = connected ? fmtEth(st.pendingEth,4)+'<span class="u">Ξ</span>' : "—";
+  $("stTax").innerHTML  = connected ? (st.taxBps/100).toFixed(2)+'<span class="u">%</span>' : "—";
+
+  // taper banner
+  if(connected){
+    const pct = (st.taxBps/100).toFixed(2);
+    $("taperRate").innerHTML = pct+'<span class="u">current</span>';
+    // marker: 2000bps -> 0% (left), 500bps -> 100% (right)
+    const frac = Math.min(1, Math.max(0, (2000 - st.taxBps) / (2000 - 500)));
+    $("taperMarker").style.left = (frac*100).toFixed(1)+"%";
+    $("taperCtx").textContent = st.taxBps >= 2000 ? "max tax · early bootstrap phase"
+                              : st.taxBps <= 500 ? "min tax · matured"
+                              : "tapering with marketcap";
+  }
+
+  // balance link
+  $("balLink").textContent = connected ? "balance: "+(mode==="stake"?fmtTok(st.tokenBal):fmtTok(st.myStake))+" · MAX" : "balance: — · MAX";
+
+  // rewards panel
+  if(connected){
+    $("rewardsEmpty").classList.add("hidden");
+    $("rewardsLive").classList.remove("hidden");
+    $("pendEth").textContent = fmtEth(st.pendingEth,5);
+    $("rvStake").textContent = fmtTok(st.myStake)+" "+sym();
+    const share = st.totalStaked.gt(0) ? (Number(st.myStake.mul(10000).div(st.totalStaked))/100).toFixed(2) : "0.00";
+    $("rvShare").textContent = share+"%";
+    $("rvBonus").textContent = fmtTok(st.pendingTok)+" "+sym();
+    $("claimBtn").disabled = st.pendingEth.lte(0) && st.pendingTok.lte(0);
+
+    // penalty
+    const pp = (st.penBps/100).toFixed(1);
+    const pv = $("penVal");
+    pv.textContent = pp+"%";
+    pv.className = "pen-val "+(st.penBps>0?"hot":"cool");
+    $("penFill").style.width = (st.penBps/100)+"%";
+    if(st.penBps>0 && st.unlockAt>0){
+      const left = st.unlockAt - Math.floor(Date.now()/1000);
+      const d = Math.max(0,left)/86400;
+      $("penNote").textContent = `${pp}% penalty if you exit now · 0% in ${d.toFixed(2)} days. Forfeit goes to loyal stakers.`;
+    } else {
+      $("penNote").textContent = "No penalty — you can unstake your full position freely.";
+    }
+  }
+
+  updatePreview();
+}
+function sym(){ return tokenSym ? ("$"+tokenSym.replace(/^\$/,"")) : "$GM"; }
+
+/* ════════════════════════════ INPUT / MODE ════════════════════════════ */
+function setMode(m){
+  mode = m;
+  $("segStake").classList.toggle("active", m==="stake");
+  $("segUnstake").classList.toggle("active", m==="unstake");
+  $("fieldLbl").textContent = m==="stake" ? "AMOUNT TO STAKE" : "AMOUNT TO UNSTAKE";
+  $("infoStake").classList.toggle("hidden", m!=="stake");
+  $("infoUnstake").classList.toggle("hidden", m!=="unstake");
+  $("amtInput").value = "";
+  render();
+}
+
+function balForMode(){ return mode==="stake" ? st.tokenBal : st.myStake; }
+
+function setMax(){ setPct(1); }
+function setPct(p){
+  if(!account) return;
+  const bal = balForMode();
+  const v = bal.mul(Math.round(p*10000)).div(10000);
+  $("amtInput").value = ethers.utils.formatUnits(v, tokenDecimals);
+  updatePreview();
+}
+
+function parseAmt(){
+  const raw = $("amtInput").value.trim();
+  if(!raw || isNaN(raw) || Number(raw) <= 0) return null;
+  try{ return ethers.utils.parseUnits(raw, tokenDecimals); }catch{ return null; }
+}
+
+function updatePreview(){
+  const amt = parseAmt();
+  const btn = $("actBtn"), note = $("actNote");
+
+  if(!account){
+    btn.textContent = "CONNECT WALLET"; btn.disabled = true;
+    btn.className = "act-btn up";
+    return;
+  }
+
+  if(mode==="stake"){
+    btn.className = "act-btn up";
+    $("ivStakeAmt").textContent = (amt?fmtTok(amt):"—")+" "+sym();
+    $("ivNewPos").textContent = amt ? fmtTok(st.myStake.add(amt))+" "+sym() : fmtTok(st.myStake)+" "+sym();
+    if(!amt){ btn.textContent="ENTER AMOUNT"; btn.disabled=true; note.textContent="Stake $GM to earn a share of every swap tax — paid in real ETH."; return; }
+    if(amt.gt(st.tokenBal)){ btn.textContent="INSUFFICIENT BALANCE"; btn.disabled=true; return; }
+    btn.disabled=false;
+    if(st.allowance.lt(amt)){ btn.textContent="APPROVE $GM"; note.textContent="One-time approval, then stake in a second tx."; }
+    else { btn.textContent="STAKE"; note.textContent="Re-arms the 7-day early-exit penalty to 100%."; }
+  } else {
+    btn.className = "act-btn down";
+    const pen = amt ? amt.mul(st.penBps).div(10000) : ethers.constants.Zero;
+    // sole-staker carve-out: if you're the only staker, penalty is waived on-chain
+    const others = st.totalStaked.sub(st.myStake);
+    const effPen = others.lte(0) ? ethers.constants.Zero : pen;
+    const out = amt ? amt.sub(effPen) : ethers.constants.Zero;
+    $("uvAmt").textContent = (amt?fmtTok(amt):"—")+" "+sym();
+    $("uvPenPct").textContent = others.lte(0) ? "0% (sole staker)" : (st.penBps/100).toFixed(1)+"%";
+    $("uvPenAmt").textContent = fmtTok(effPen)+" "+sym();
+    $("uvOut").textContent = (amt?fmtTok(out):"—")+" "+sym();
+    if(!amt){ btn.textContent="ENTER AMOUNT"; btn.disabled=true; note.textContent="You also collect any pending ETH + bonus tokens on unstake."; return; }
+    if(amt.gt(st.myStake)){ btn.textContent="EXCEEDS STAKE"; btn.disabled=true; return; }
+    btn.disabled=false;
+    btn.textContent="UNSTAKE";
+    note.textContent = st.penBps>0 && others.gt(0)
+      ? `⚠ ${(st.penBps/100).toFixed(1)}% penalty active — forfeit goes to other stakers.`
+      : "No penalty — full amount returned plus pending rewards.";
+  }
+}
+
+/* ════════════════════════════ ACTIONS ════════════════════════════ */
+let busy = false;
+async function doAction(){
+  if(busy || !account) return;
+  const amt = parseAmt();
+  if(!amt) return;
+  try{
+    busy = true; $("actBtn").disabled = true;
+    if(mode==="stake"){
+      if(st.allowance.lt(amt)){
+        toast('<span class="spin"></span>Approving $GM…');
+        const tx = await token.approve(CONFIG.HOOK, MAXU);
+        await tx.wait();
+        st.allowance = MAXU;
+        toast("Approved ✓","ok");
+        updatePreview(); busy=false; $("actBtn").disabled=false;
+        return; // user clicks again to stake
+      }
+      toast('<span class="spin"></span>Staking '+fmtTok(amt)+' '+sym()+'…');
+      const tx = await hook.stake(amt);
+      await tx.wait();
+      toast("Staked "+fmtTok(amt)+" "+sym()+" ✓","ok");
+    } else {
+      toast('<span class="spin"></span>Unstaking '+fmtTok(amt)+' '+sym()+'…');
+      const tx = await hook.unstake(amt);
+      await tx.wait();
+      toast("Unstaked ✓ — rewards collected","ok");
+    }
+    $("amtInput").value = "";
+    await refresh();
+  }catch(e){ toast(err(e),"err"); }
+  finally{ busy=false; $("actBtn").disabled=false; updatePreview(); }
+}
+
+async function doClaim(){
+  if(busy || !account) return;
+  try{
+    busy=true; $("claimBtn").disabled=true;
+    toast('<span class="spin"></span>Claiming rewards…');
+    const tx = await hook.claim();
+    await tx.wait();
+    toast("Claimed ✓","ok");
+    await refresh();
+  }catch(e){ toast(err(e),"err"); }
+  finally{ busy=false; }
+}
+
+/* ════════════════════════════ INIT ════════════════════════════ */
+render();
+// live-refresh penalty countdown + pending stream every 12s while connected
+setInterval(()=>{ if(account && !busy) refresh(); }, 12000);
+// gentle penalty UI tick (no RPC) every second
+setInterval(()=>{
+  if(!account || st.unlockAt<=0) return;
+  const left = st.unlockAt - Math.floor(Date.now()/1000);
+  if(left<=0) return;
+  const bps = Math.round(10000 * left / (7*86400));
+  $("penVal").textContent = (bps/100).toFixed(1)+"%";
+  $("penFill").style.width = (bps/100)+"%";
+}, 1000);
+
+if(!HAS_CONTRACT){
+  $("actNote").innerHTML = '⚙ <b style="color:var(--acc2)">Set CONFIG.HOOK</b> to your deployed TaxHook address, then connect.';
+}
+</script>
+</body>
+</html>

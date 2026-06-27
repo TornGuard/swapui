@@ -277,7 +277,7 @@ export default function SwapPage() {
           <div className="stat-lbl">GM PER ETH</div>
         </div>
         <div className="stat">
-          <div className="stat-val">{isConnected ? (stRef.current.taxBps / 100).toFixed(2) + '<span class="u">%</span>' : '—'}</div>
+          <div className="stat-val">{isConnected ? <>{parseFloat((stRef.current.taxBps / 100).toFixed(2))}<span className="u">%</span></> : '—'}</div>
           <div className="stat-lbl">LIVE SWAP TAX</div>
         </div>
         <div className="stat">

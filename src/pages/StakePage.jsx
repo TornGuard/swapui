@@ -218,8 +218,8 @@ export default function StakePage() {
       <div className="stat-strip" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         <div className="stat"><div className="stat-val">{isConnected ? fmtTok(s.totalStaked) : '—'}</div><div className="stat-lbl">TOTAL STAKED $GM</div></div>
         <div className="stat"><div className="stat-val eth">{isConnected ? fmtTok(s.myStake) : '—'}</div><div className="stat-lbl">YOUR STAKE</div></div>
-        <div className="stat"><div className="stat-val eth">{isConnected ? fmtEth(s.pendingEth, 4) + '<span class="u">Ξ</span>' : '—'}</div><div className="stat-lbl">YOUR PENDING ETH</div></div>
-        <div className="stat"><div className="stat-val">{isConnected ? (s.taxBps / 100).toFixed(2) + '<span class="u">%</span>' : '—'}</div><div className="stat-lbl">LIVE SWAP TAX</div></div>
+        <div className="stat"><div className="stat-val eth">{isConnected ? <>{fmtEth(s.pendingEth, 4)}<span className="u">Ξ</span></> : '—'}</div><div className="stat-lbl">YOUR PENDING ETH</div></div>
+        <div className="stat"><div className="stat-val">{isConnected ? <>{parseFloat((s.taxBps / 100).toFixed(2))}<span className="u">%</span></> : '—'}</div><div className="stat-lbl">LIVE SWAP TAX</div></div>
       </div>
 
       <div className="taper">

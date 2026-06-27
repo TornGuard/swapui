@@ -217,7 +217,7 @@ export default function StakePage() {
 
   return (
     <div className="wrap">
-      <div className="stat-strip" style={{ gridTemplateColumns: 'repeat(4,1fr)', maxWidth: '1040px' }}>
+      <div className="stat-strip" style={{ gridTemplateColumns: 'repeat(4,1fr)', maxWidth: '936px' }}>
         <div className="stat"><div className="stat-val">{ready ? fmtTok(s.totalStaked) : '—'}</div><div className="stat-lbl">TOTAL STAKED $GM</div></div>
         <div className="stat"><div className="stat-val eth">{ready ? fmtTok(s.myStake) : '—'}</div><div className="stat-lbl">YOUR STAKE</div></div>
         <div className="stat"><div className="stat-val eth">{ready ? <>{fmtEth(s.pendingEth, 4)}<span className="u">Ξ</span></> : '—'}</div><div className="stat-lbl">YOUR PENDING ETH</div></div>

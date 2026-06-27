@@ -75,7 +75,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 .arrow{text-align:center;color:var(--muted2);font-size:14px;margin:10px 0;letter-spacing:0.2em}
 
 /* Info rows */
-.info-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.info-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
 .info-row{display:flex;justify-content:space-between;align-items:center;font-size:10px}
 .info-lbl{color:var(--muted)}
 .info-val{color:var(--text);font-weight:700}
@@ -108,10 +108,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 .toast.ok{border-color:var(--up-border)}
 
 /* Stake-specific */
-.grid{width:100%;max-width:1040px;display:grid;grid-template-columns:1fr 360px;gap:1rem;align-items:start}
-@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.grid{width:100%;max-width:936px;display:grid;grid-template-columns:560px 360px;gap:1rem;align-items:start}
+@media(max-width:936px){.grid{grid-template-columns:1fr}}
 
-.taper{background:var(--panel);border:0.5px solid var(--border);padding:1.25rem;width:100%;max-width:1040px}
+.taper{background:var(--panel);border:0.5px solid var(--border);padding:1.25rem;width:100%;max-width:936px}
 .taper-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
 .taper-rate{font-family:var(--display);font-size:54px;letter-spacing:2px;line-height:1;color:var(--text)}
 .taper-rate .u{font-family:var(--mono);font-size:13px;color:var(--muted2);font-weight:400;letter-spacing:0;margin-left:4px}

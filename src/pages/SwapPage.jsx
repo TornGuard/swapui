@@ -48,6 +48,7 @@ export default function SwapPage() {
   const [spotCache, setSpotCache] = useState(0)
   const [quoteOut, setQuoteOut] = useState(ethers.constants.Zero)
   const [quoteIn, setQuoteIn] = useState(ethers.constants.Zero)
+  const [ready, setReady] = useState(false)
 
   const stRef = useRef({ walEth: ethers.constants.Zero, tokenBal: ethers.constants.Zero, taxBps: 0, p2Erc20: ethers.constants.Zero, p2Amt: ethers.constants.Zero, p2Exp: 0 })
   const contractsRef = useRef({ provider: null, signer: null, hook: null, ur: null, quoter: null, permit2: null, token: null, tokenAddr: null, tokenDecimals: 18, tokenSym: 'GM', poolKey: null, account: null })
@@ -113,14 +114,15 @@ export default function SwapPage() {
         permit2: new ethers.Contract(lc(CONFIG.PERMIT2), PERMIT2_ABI, signer),
         token, tokenAddr, tokenDecimals, tokenSym, poolKey, account: address
       }
+      setReady(true)
       refreshState()
       refreshSpot()
     } catch (e) { showToast(errMsg(e), 'err') }
   }, [walletProvider, address, showToast, errMsg])
 
   useEffect(() => {
-    if (isConnected && walletProvider) initContracts()
-    else { contractsRef.current = { provider: null, signer: null, hook: null, ur: null, quoter: null, permit2: null, token: null, tokenAddr: null, tokenDecimals: 18, tokenSym: 'GM', poolKey: null, account: null } }
+    if (isConnected && walletProvider) { setReady(false); initContracts() }
+    else { setReady(false); contractsRef.current = { provider: null, signer: null, hook: null, ur: null, quoter: null, permit2: null, token: null, tokenAddr: null, tokenDecimals: 18, tokenSym: 'GM', poolKey: null, account: null } }
   }, [isConnected, walletProvider, initContracts])
 
   const refreshState = useCallback(async () => {
@@ -253,7 +255,7 @@ export default function SwapPage() {
   const balStr = mode === 'buy' ? fmtEth(bal, 4) + ' ETH' : fmtTok(bal) + ' ' + sym()
 
   let btnText = 'CONNECT WALLET', btnDisabled = true, btnClass = 'act-btn up'
-  if (isConnected) {
+  if (ready) {
     btnClass = 'act-btn ' + (mode === 'buy' ? 'up' : 'down')
     if (!amtBN) { btnText = 'ENTER AMOUNT'; btnDisabled = true }
     else if (amtBN.gt(bal)) { btnText = 'INSUFFICIENT BALANCE'; btnDisabled = true }
@@ -273,15 +275,15 @@ export default function SwapPage() {
     <div className="wrap">
       <div className="stat-strip">
         <div className="stat">
-          <div className="stat-val">{isConnected && spotCache ? Math.round(spotCache).toLocaleString() : '—'}</div>
+          <div className="stat-val">{ready && spotCache ? Math.round(spotCache).toLocaleString() : '—'}</div>
           <div className="stat-lbl">GM PER ETH</div>
         </div>
         <div className="stat">
-          <div className="stat-val">{isConnected ? <>{(stRef.current.taxBps / 100).toFixed(2)}<span className="u">%</span></> : '—'}</div>
+          <div className="stat-val">{ready ? <>{(stRef.current.taxBps / 100).toFixed(2)}<span className="u">%</span></> : '—'}</div>
           <div className="stat-lbl">LIVE SWAP TAX</div>
         </div>
         <div className="stat">
-          <div className="stat-val eth">{isConnected ? fmtTok(stRef.current.tokenBal) : '—'}</div>
+          <div className="stat-val eth">{ready ? fmtTok(stRef.current.tokenBal) : '—'}</div>
           <div className="stat-lbl">YOUR $GM</div>
         </div>
       </div>
@@ -295,7 +297,7 @@ export default function SwapPage() {
         <div className="field-lbl">
           <span>{mode === 'buy' ? 'YOU PAY' : 'YOU PAY'}</span>
           <span className="bal-link" onClick={() => {
-            if (!isConnected) return
+            if (!ready) return
             const b = mode === 'buy' ? stRef.current.walEth : stRef.current.tokenBal
             let v = b
             if (mode === 'buy' && v.gt(ethers.utils.parseEther('0.01'))) v = v.sub(ethers.utils.parseEther('0.01'))
@@ -309,7 +311,7 @@ export default function SwapPage() {
         <div className="quick-amts">
           {[0.25, 0.5, 0.75, 1].map(p => (
             <button key={p} className="qa" onClick={() => {
-              if (!isConnected) return
+              if (!ready) return
               const b = mode === 'buy' ? stRef.current.walEth : stRef.current.tokenBal
               let v = b.mul(Math.round(p * 10000)).div(10000)
               if (mode === 'buy' && p === 1 && v.gt(ethers.utils.parseEther('0.01'))) v = v.sub(ethers.utils.parseEther('0.01'))
@@ -339,7 +341,7 @@ export default function SwapPage() {
           </div>
           <div className="info-row">
             <span className="info-lbl">SWAP TAX (in this quote)</span>
-            <span className="info-val warn">{isConnected ? (stRef.current.taxBps / 100).toFixed(2) + '% (ETH leg)' : '—'}</span>
+            <span className="info-val warn">{ready ? (stRef.current.taxBps / 100).toFixed(2) + '% (ETH leg)' : '—'}</span>
           </div>
           <div className="info-row">
             <span className="info-lbl">MAX SLIPPAGE</span>

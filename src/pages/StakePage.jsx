@@ -34,6 +34,7 @@ export default function StakePage() {
   const [amount, setAmount] = useState('')
   const [toast, setToast] = useState({ msg: '', kind: '', show: false })
   const [busy, setBusy] = useState(false)
+  const [ready, setReady] = useState(false)
   const stRef = useRef({
     walEth: ethers.constants.Zero, tokenBal: ethers.constants.Zero, allowance: ethers.constants.Zero,
     totalStaked: ethers.constants.Zero, taxBps: 0, myStake: ethers.constants.Zero,
@@ -115,13 +116,14 @@ export default function StakePage() {
       const tokenDecimals = await token.decimals().catch(() => 18)
       const tokenSym = await token.symbol().catch(() => 'GM')
       contractsRef.current = { provider, signer, hook, token, tokenDecimals, tokenSym, account: address }
+      setReady(true)
       refresh()
     } catch (e) { showToast(errMsg(e), 'err') }
   }, [walletProvider, address, showToast, errMsg, refresh])
 
   useEffect(() => {
-    if (isConnected && walletProvider) initContracts()
-    else contractsRef.current = { provider: null, signer: null, hook: null, token: null, tokenDecimals: 18, tokenSym: 'GM', account: null }
+    if (isConnected && walletProvider) { setReady(false); initContracts() }
+    else { setReady(false); contractsRef.current = { provider: null, signer: null, hook: null, token: null, tokenDecimals: 18, tokenSym: 'GM', account: null } }
   }, [isConnected, walletProvider, initContracts])
 
   useEffect(() => {
@@ -155,7 +157,7 @@ export default function StakePage() {
   const s = stRef.current
 
   let btnText = 'CONNECT WALLET', btnDisabled = true, btnClass = 'act-btn up'
-  if (isConnected) {
+  if (ready) {
     btnClass = 'act-btn ' + (mode === 'stake' ? 'up' : 'down')
     if (!amtBN) { btnText = 'ENTER AMOUNT'; btnDisabled = true }
     else if (mode === 'stake') {
@@ -173,7 +175,7 @@ export default function StakePage() {
   const out = amtBN ? amtBN.sub(effPen) : ethers.constants.Zero
 
   const doAction = async () => {
-    if (busy || !isConnected) return
+    if (busy || !ready) return
     if (!amtBN) return
     try {
       setBusy(true)
@@ -199,7 +201,7 @@ export default function StakePage() {
   }
 
   const doClaim = async () => {
-    if (busy || !isConnected) return
+    if (busy || !ready) return
     try {
       setBusy(true)
       showToast('Claiming rewards…')
@@ -216,21 +218,21 @@ export default function StakePage() {
   return (
     <div className="wrap">
       <div className="stat-strip" style={{ gridTemplateColumns: 'repeat(4,1fr)', maxWidth: '1040px' }}>
-        <div className="stat"><div className="stat-val">{isConnected ? fmtTok(s.totalStaked) : '—'}</div><div className="stat-lbl">TOTAL STAKED $GM</div></div>
-        <div className="stat"><div className="stat-val eth">{isConnected ? fmtTok(s.myStake) : '—'}</div><div className="stat-lbl">YOUR STAKE</div></div>
-        <div className="stat"><div className="stat-val eth">{isConnected ? <>{fmtEth(s.pendingEth, 4)}<span className="u">Ξ</span></> : '—'}</div><div className="stat-lbl">YOUR PENDING ETH</div></div>
-        <div className="stat"><div className="stat-val">{isConnected ? <>{(s.taxBps / 100).toFixed(2)}<span className="u">%</span></> : '—'}</div><div className="stat-lbl">LIVE SWAP TAX</div></div>
+        <div className="stat"><div className="stat-val">{ready ? fmtTok(s.totalStaked) : '—'}</div><div className="stat-lbl">TOTAL STAKED $GM</div></div>
+        <div className="stat"><div className="stat-val eth">{ready ? fmtTok(s.myStake) : '—'}</div><div className="stat-lbl">YOUR STAKE</div></div>
+        <div className="stat"><div className="stat-val eth">{ready ? <>{fmtEth(s.pendingEth, 4)}<span className="u">Ξ</span></> : '—'}</div><div className="stat-lbl">YOUR PENDING ETH</div></div>
+        <div className="stat"><div className="stat-val">{ready ? <>{(s.taxBps / 100).toFixed(2)}<span className="u">%</span></> : '—'}</div><div className="stat-lbl">LIVE SWAP TAX</div></div>
       </div>
 
       <div className="taper">
         <div className="card-label"><span>SWAP TAX — TAPERS AS WE GROW</span><span className="card-label-right">50% OF EVERY TAX → STAKERS, PAID IN ETH</span></div>
         <div className="taper-top">
-          <div className="taper-rate">{isConnected ? (s.taxBps / 100).toFixed(2) : '—'}<span className="u">current</span></div>
+          <div className="taper-rate">{ready ? (s.taxBps / 100).toFixed(2) : '—'}<span className="u">current</span></div>
           <div className="taper-sub">
             starts at <b>20%</b> to bootstrap<br />
             tapers to <b>5%</b> as marketcap climbs<br />
             <span style={{ color: 'var(--acc2)' }}>
-              {isConnected ? s.taxBps >= 2000 ? 'max tax · early bootstrap phase' : s.taxBps <= 500 ? 'min tax · matured' : 'tapering with marketcap' : 'connect to read live rate'}
+              {ready ? s.taxBps >= 2000 ? 'max tax · early bootstrap phase' : s.taxBps <= 500 ? 'min tax · matured' : 'tapering with marketcap' : 'connect to read live rate'}
             </span>
           </div>
         </div>
@@ -248,7 +250,7 @@ export default function StakePage() {
           <div className="field-lbl">
             <span>{mode === 'stake' ? 'AMOUNT TO STAKE' : 'AMOUNT TO UNSTAKE'}</span>
             <span className="bal-link" onClick={() => {
-              if (!isConnected) return
+              if (!ready) return
               const b = balForMode
               setAmount(ethers.utils.formatUnits(b, contractsRef.current.tokenDecimals))
             }}>balance: {mode === 'stake' ? fmtTok(s.tokenBal) : fmtTok(s.myStake)} · MAX</span>
@@ -260,8 +262,8 @@ export default function StakePage() {
           <div className="quick-amts">
             {[0.25, 0.5, 0.75, 1].map(p => (
               <button key={p} className="qa" onClick={() => {
-                if (!isConnected) return
-                const b = balForMode
+              if (!ready) return
+              const b = balForMode
                 setAmount(ethers.utils.formatUnits(b.mul(Math.round(p * 10000)).div(10000), contractsRef.current.tokenDecimals))
               }}>{p === 1 ? 'MAX' : (p * 100) + '%'}</button>
             ))}
@@ -291,7 +293,7 @@ export default function StakePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="card">
             <div className="card-label"><span>YOUR REWARDS</span><span className="card-label-right">PAID IN ETH</span></div>
-            {!isConnected ? (
+            {!ready ? (
               <div className="empty">
                 <span className="big">— Ξ</span>
                 connect your wallet to<br />view your staking position

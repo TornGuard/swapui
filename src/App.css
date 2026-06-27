@@ -51,7 +51,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 .seg-btn{padding:11px 0;text-align:center;font-size:10px;letter-spacing:0.14em;color:var(--muted2);background:var(--surf);cursor:pointer;transition:all 0.15s;font-family:var(--mono);user-select:none;border:none}
 .seg-btn.active{background:var(--surf2);color:var(--text)}
 .seg-btn.buy.active{color:var(--up)}
-.seg-btn.sell.active{color:var(--down)}
+.seg-btn.sell.active{color:var(--muted3)}
 .seg-btn:not(.active):hover{color:var(--muted3)}
 
 /* Field */
@@ -75,11 +75,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 .arrow{text-align:center;color:var(--muted2);font-size:14px;margin:10px 0;letter-spacing:0.2em}
 
 /* Info rows */
-.info-rows{display:flex;flex-direction:column;gap:7px;margin:16px 0}
+.info-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
 .info-row{display:flex;justify-content:space-between;align-items:center;font-size:10px}
 .info-lbl{color:var(--muted)}
 .info-val{color:var(--text);font-weight:700}
-.info-val.warn{color:var(--down)}
+.info-val.warn{color:var(--muted3)}
 .info-val.good{color:var(--up)}
 .info-val.dim{color:var(--muted2);font-weight:400}
 
@@ -104,7 +104,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 /* Toast */
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--surf);border:0.5px solid var(--border2);padding:10px 20px;font-size:11px;letter-spacing:0.06em;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:1}
-.toast.err{border-color:var(--down-border);color:var(--down)}
+.toast.err{border-color:var(--border2);color:var(--muted3)}
 .toast.ok{border-color:var(--up-border)}
 
 /* Stake-specific */
@@ -133,7 +133,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 .pen-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .pen-lbl{font-size:9px;color:var(--muted);letter-spacing:0.12em}
 .pen-val{font-family:var(--display);font-size:20px;letter-spacing:1px}
-.pen-val.hot{color:var(--down)}
+.pen-val.hot{color:var(--muted3)}
 .pen-val.cool{color:var(--up)}
 .pen-track{height:4px;background:var(--surf);overflow:hidden;margin-bottom:6px}
 .pen-fill{height:100%;background:var(--down);transition:width 0.5s}

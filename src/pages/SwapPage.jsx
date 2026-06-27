@@ -328,7 +328,7 @@ export default function SwapPage() {
           <input className="amount-input" type="text" readOnly placeholder="0.00" value={outVal} />
         </div>
 
-        <div className="info-rows">
+        <div className="info-rows" style={{ marginTop: '16px' }}>
           <div className="info-row">
             <span className="info-lbl">RATE</span>
             <span className="info-val dim">
